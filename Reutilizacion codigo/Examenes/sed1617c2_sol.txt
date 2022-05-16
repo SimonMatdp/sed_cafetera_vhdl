@@ -1,0 +1,73 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity seqdet is
+  port (
+    reset: in  std_logic;
+    clk_n: in  std_logic;
+    si   : in  std_logic;
+    start: out std_logic
+  );
+end seqdet;
+
+architecture behavioral of seqdet is
+  type state_t is (S0, S1, S2, S3, S4); 
+  signal state, next_state: state_t;
+begin
+  state_reg: process (clk_n)
+  begin
+    if clk_n'event and clk_n = '0' then
+      if reset = '1' then
+        state <= S0;
+      else
+        state <= next_state;
+      end if;        
+    end if;
+  end process;
+
+  nxt_state_decoder: process (state, si)
+  begin
+    next_state <= state;
+    case state is
+      when S0 =>
+        if si = '1' then
+          next_state <= S1; -- 1---
+        end if;
+      when S1 =>
+        if si = '0' then    -- 10--
+          next_state <= S2;
+        end if;
+      when S2 =>
+        if si = '1' then    -- 101-
+          next_state <= S3;
+        else                -- 100-
+          next_state <= S0;
+        end if;
+      when S3 =>
+        if si = '1' then    -- 1011
+          next_state <= S4;
+        else                -- 1010
+          next_state <= S2;
+        end if;
+      when S4 =>
+        if si = '1' then    -- 1---
+          next_state <= S1;
+        else                -- 0---
+          next_state <= S0;
+        end if;
+      when others =>
+        next_state <= S0;
+    end case;
+  end process;
+ 
+  output_decod: process (state)
+  begin
+    case (state) is
+      when S4 =>
+        start <= '1';
+      when others =>
+        start <= '0';
+    end case;      
+  end process;
+
+end behavioral;

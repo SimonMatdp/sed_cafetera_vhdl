@@ -1,0 +1,49 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity pwmgen is
+  port (
+    reset_n: in  std_logic;
+    clk    : in  std_logic;
+    load_n : in  std_logic;
+    duty   : in  std_logic_vector(9 downto 0);
+    en     : in  std_logic;
+    gate   : out std_logic
+  );
+end pwmgen;
+
+architecture behavioral of pwmgen is
+  signal duty_i: unsigned(duty'range);
+  signal cntr_i: unsigned(duty'range);
+begin
+  
+  duty_reg: process (reset_n, clk)
+  begin
+    if reset_n = '0' then
+      duty_i <= (others => '0');
+    elsif rising_edge(clk) then
+      if load_n = '0' then
+        duty_i <= unsigned(duty);
+      end if;
+    end if;
+  end process;
+
+  counter: process (reset_n, clk)
+  begin
+    if reset_n = '0' then
+      cntr_i <= (others => '0');
+    elsif rising_edge(clk) then
+      if en = '0' then
+        cntr_i <= (others => '0');
+      else
+        cntr_i <= cntr_i + 1;
+      end if;
+    end if;
+  end process;
+
+  comp: gate <= '0' when en = '0' or duty_i <= cntr_i else
+                '1';
+
+end behavioral;
+
