@@ -1,0 +1,35 @@
+--Divisor de frecuencias
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity freq_div is
+	generic(modulo:positive:=2);
+	port(clk_in, reset, EN: in std_logic;
+	 clk_out : out std_logic
+	);
+end freq_div;
+
+architecture Behavioral of freq_div is
+signal clk_out_signal:std_logic;
+
+begin --arch
+	process(clk_in, reset, EN) 
+    variable contador: positive := modulo+1; --positive va de 1 a nosecuantos
+    begin -- process
+    	if reset='1' then -- if reset
+            clk_out_signal <= '0';
+            clk_out<=clk_out_signal;
+            contador := modulo;-- si hago un subtipo podría hacer subtipo'high
+         elsif clk_in'event and clk_in='1' then --flanco de subida, tb risign_edg(clk_in)
+         	if EN='1' then --if enable 
+            	if contador /= 1 then--if contador --0 si integer, '0' si booleano, "0" si vector
+                  contador:= contador-1;
+            	else
+                  clk_out_signal <= not clk_out_signal; --Toggle
+                  contador:= modulo;
+               	end if; --if contador
+             end if; --if enable
+         end if; -- if reset
+         clk_out <= clk_out_signal;
+    end process; -- process
+end behavioral; --arch

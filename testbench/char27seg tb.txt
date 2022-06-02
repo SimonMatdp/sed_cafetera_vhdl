@@ -1,0 +1,47 @@
+-- Testbench automatically generated online
+-- at https://vhdl.lapinoo.net
+-- Generation date : 2.6.2022 07:54:11 UTC
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity tb_CHAR27SEG is
+end tb_CHAR27SEG;
+
+architecture tb of tb_CHAR27SEG is
+
+    component CHAR27SEG
+        port (CHAR_IN  : in character;
+              CATHODES : out std_logic_vector (7 downto 1));
+    end component;
+
+    signal CHAR_IN  : character;
+    signal CATHODES : std_logic_vector (7 downto 1);
+
+begin
+
+    dut : CHAR27SEG
+    port map (CHAR_IN  => CHAR_IN,
+              CATHODES => CATHODES);
+
+    stimuli : process
+    begin
+        -- EDIT Adapt initialization as needed
+        CHAR_IN <= '0';
+        wait for 10 ns;
+        CHAR_IN <= 'N';
+        wait for 10 ns;
+
+        -- EDIT Add stimuli here
+
+        wait;
+    end process;
+
+end tb;
+
+-- Configuration block below is required by some simulators. Usually no need to edit.
+
+configuration cfg_tb_CHAR27SEG of tb_CHAR27SEG is
+    for tb
+    end for;
+end cfg_tb_CHAR27SEG;

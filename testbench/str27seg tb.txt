@@ -1,0 +1,49 @@
+-- Testbench automatically generated online
+-- at https://vhdl.lapinoo.net
+-- Generation date : 2.6.2022 09:31:28 UTC
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity tb_STR27SEG is
+end tb_STR27SEG;
+
+architecture tb of tb_STR27SEG is
+
+    component STR27SEG
+        port (STR_IN   : in string (4 downto 1);
+              CATHODES : out std_logic_vector (28 downto 1));
+    end component;
+
+    signal STR_IN   : string (4 downto 1);
+    signal CATHODES : std_logic_vector (28 downto 1);
+
+begin
+
+    dut : STR27SEG
+    port map (STR_IN   => STR_IN,
+              CATHODES => CATHODES);
+
+    stimuli : process
+    begin
+        -- EDIT Adapt initialization as needed
+        STR_IN <= (others => '0');
+        -- EDIT Add stimuli here
+        STR_IN <= "0000"; --1 en todos
+      	wait for 10 ns;
+     	STR_IN <= "1234"; --1001111(1) 0010010(2) 0000110(3) 1001100(4)
+     	wait for 10 ns;
+      	STR_IN <="LRGO";
+		wait for 10 ns;
+
+        wait;
+    end process;
+
+end tb;
+
+-- Configuration block below is required by some simulators. Usually no need to edit.
+
+configuration cfg_tb_STR27SEG of tb_STR27SEG is
+    for tb
+    end for;
+end cfg_tb_STR27SEG;
