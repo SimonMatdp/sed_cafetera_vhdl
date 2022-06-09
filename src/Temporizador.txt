@@ -1,0 +1,168 @@
+-- Code your design here
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+ENTITY Temporizador IS
+port(
+	CLR_COUNT : in std_logic;
+	CLK, reset, EN: in std_logic;
+    TIMEOUT: out std_logic;
+    REGSEL : in std_logic
+ 	VALUE : in std_logic_vector(8 - 1 downto 0)
+);
+end Temporizador;
+
+ARCHITECTURE arch1 of Temporizador is 
+
+  component registro is
+  	port(
+    	CLK : in std_logic;
+    	VALUE : in std_logic_vector(8 - 1 downto 0);
+        REGSEL : in std_logic;
+        TIEMPO : out unsigned range 0 to 256
+    );
+  end component;
+
+  component contador is
+      port (
+          CLK_S : in std_logic;
+          CLR_COUNT : in std_logic;
+          COUNT: out unsigned RANGE 0 to 256
+   );
+  end contador;
+
+
+  component freq_div is
+      generic(modulo:positive:=2);
+      port(
+          clk_in, reset, EN: in std_logic;
+          clk_out : out std_logic
+      );
+  end component;
+
+  component comparator
+      port(
+          COUNTT,REGT: IN unsigned RANGE 0 to 255;
+          COMP: OUT STD_LOGIC
+       );
+  end component;
+signal a : std_logic;
+signal b,c : unsigned range 0 to 255;
+begin
+	Inst_freq_div : freq_div PORT MAP(
+    	clk_in =>CLK
+        reset => reset;
+        EN => EN;
+        clk_out => a
+    );
+    
+	Inst_registro : registro PORT MAP(
+    	CLK=>CLK
+        VALUE =>VALUE,
+        REGSEL =>REGSEL,
+        TIEMPO => b
+    );
+    Inst_contador : contador PORT MAP(
+    	CLK_S=>a,
+        CLR_COUNT=> CLR_COUNT,
+        COUNT=>c
+    );
+    Inst_comparador : comparador PORT MAP(
+		COUNTT => c,
+        REGT => b,
+        COMP=>TIMEOUT
+    );
+end arch1;
+
+ENTITY comparator IS
+	PORT(
+		COUNTT,REGT: IN unsigned RANGE 0 to 255;
+        COMP: OUT STD_LOGIC
+    );
+
+END ENTITY;
+
+ARCHITECTURE arch1 OF comparator IS
+BEGIN
+	COMP <= '1' WHEN COUNTT=REGT ELSE '0';
+END ARCHITECTURE;
+
+entity freq_div is
+	generic(modulo:positive:=2);
+	port(clk_in, reset, EN: in std_logic;
+	 clk_out : out std_logic
+	);
+end freq_div;
+
+architecture Behavioral of freq_div is
+signal clk_out_signal:std_logic;
+
+begin --arch
+	process(clk_in, reset, EN) 
+    variable contador: positive := modulo+1; --positive va de 1 a nosecuantos
+    begin -- process
+    	if reset='1' then -- if reset
+            clk_out_signal <= '0';
+            clk_out<=clk_out_signal;
+            contador := modulo;-- si hago un subtipo podría hacer subtipo'high
+         elsif clk_in'event and clk_in='1' then --flanco de subida, tb risign_edg(clk_in)
+         	if EN='1' then --if enable 
+            	if contador /= 1 then--if contador --0 si integer, '0' si booleano, "0" si vector
+                  contador:= contador-1;
+            	else
+                  clk_out_signal <= not clk_out_signal; --Toggle
+                  contador:= modulo;
+               	end if; --if contador
+             end if; --if enable
+         end if; -- if reset
+         clk_out <= clk_out_signal;
+    end process; -- process
+end behavioral; --arch
+
+entity contador is
+ 	port (
+ 		CLK_S : in std_logic;
+ 		CLR : in std_logic;
+ 		COUNT :out unsigned RANGE 0 to 255
+ );
+end contador;
+
+architecture behavioural of contador is
+signal cnt : unsigned(256);
+begin
+ 	counter: process (CLK_S)
+ 		begin
+ 			if falling_edge(CLK_S) then
+ 				if CLR = '1' then
+ 					count <= (others => '0');
+ 				else
+ 					cnt <= cnt + 1;
+ 				end if;
+ 			end if;
+ 	end process;
+    count := cnt;
+end behavioural;
+
+entity registro is
+  	port(
+    	CLK : in std_logic;
+    	VALUE : in std_logic_vector(8 - 1 downto 0);
+        REGSEL in std_logic;
+        TIME :out unsigned RANGE 0 to 255
+    );
+end registro;
+architecture behavioural of registro is
+signal period : unsigned(VALUE'range);
+begin
+	period_reg: process (CLK)
+ 	begin
+ 		if falling_edge(CLK) then
+ 			if CLR = '1' then
+ 				period <= (others => '0');
+ 			elsif REGSEL = "01" then
+ 				period <= unsigned(VALUE);
+ 			end if;
+ 		end if;
+ 	end process;
+    TIME := period;
+end behavioural;
