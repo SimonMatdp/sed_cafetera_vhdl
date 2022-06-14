@@ -1,0 +1,35 @@
+-- Code your design here
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity contador is
+ 	port (
+ 		reset	: in std_logic;
+        clk 	: in std_logic;
+        en		: in std_logic;
+ 		cnt 	: out unsigned(255 downto 0);
+        overflow: out std_logic
+ );
+end contador;
+
+architecture behavioural of contador is
+	signal cnt_i : unsigned(cnt'range);
+begin
+ 	counter: process (reset, clk)
+ 		begin
+ 			if reset = '1' then
+            	cnt_i <=(others => '0');
+                overflow <='0';
+            elsif rising_edge(clk) then
+            	if en = '1' then
+                	if cnt_i<256 then 
+ 						cnt_i <= cnt_i + 1;
+                    elsif cnt_i >=256 then
+                    	overflow <='1';
+                    end if;
+                end if;
+ 			end if;
+ 	end process;
+    cnt <= cnt_i;
+end behavioural;

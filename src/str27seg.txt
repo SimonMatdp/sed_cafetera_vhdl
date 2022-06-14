@@ -6,7 +6,7 @@ entity STR27SEG is
 port(
 	STR_IN	: in string(4 downto 1);
     CATHODES: out std_logic_vector(28 downto 1)
-);
+	);
 end STR27SEG;
 
 architecture MODULAR of STR27SEG is

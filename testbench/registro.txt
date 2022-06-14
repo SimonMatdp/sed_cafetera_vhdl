@@ -1,0 +1,95 @@
+-- Testbench automatically generated online
+-- at https://vhdl.lapinoo.net
+-- Generation date : 14.6.2022 12:06:29 UTC
+
+library ieee;
+use ieee.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity tb_registro is
+end tb_registro;
+
+architecture tb of tb_registro is
+
+    component registro
+        port (reset   : in std_logic;
+              clk     : in std_logic;
+              load    : in std_logic;
+              val_in  : in std_logic_vector (7 downto 0);
+              en      : in std_logic;
+              val_out : out std_logic_vector (7 downto 0));
+    end component;
+
+    signal reset   : std_logic;
+    signal clk     : std_logic;
+    signal load    : std_logic;
+    signal val_in  : std_logic_vector (7 downto 0);
+    signal en      : std_logic;
+    signal val_out : std_logic_vector (7 downto 0);
+
+    constant TbPeriod : time := 10 ns; -- EDIT Put right period here
+    signal TbClock : std_logic := '0';
+    signal TbSimEnded : std_logic := '0';
+
+begin
+
+    dut : registro
+    port map (reset   => reset,
+              clk     => clk,
+              load    => load,
+              val_in  => val_in,
+              en      => en,
+              val_out => val_out);
+
+    -- Clock generation
+    TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
+
+    -- EDIT: Check that clk is really your main clock signal
+    clk <= TbClock;
+
+    stimuli : process
+    begin
+        -- EDIT Adapt initialization as needed
+        load <= '0';
+        val_in <= (others => '0');
+        en <= '0';
+
+        -- Reset generation
+        -- EDIT: Check that reset is really your reset signal
+        reset <= '1';
+        wait for 100 ns;
+        reset <= '0';
+        wait for 100 ns;
+
+        -- EDIT Add stimuli here
+        val_in <= std_logic_vector(to_unsigned(7, val_in'length));
+        load <= '0';
+        wait for 70 ns;
+        load <= '1';
+        wait for 80 ns;
+        reset <='1';
+        load <= '0';
+        wait for 10 ns;
+        reset <='0';
+        wait for 40 ns;
+        load <= '1';
+        val_in <= std_logic_vector(to_unsigned(19, val_in'length));
+        wait for 30 ns;
+        load <= '0';
+        val_in <= std_logic_vector(to_unsigned(3, val_in'length));
+        wait for 20 ns;
+       
+
+        -- Stop the clock and hence terminate the simulation
+        TbSimEnded <= '1';
+        wait;
+    end process;
+
+end tb;
+
+-- Configuration block below is required by some simulators. Usually no need to edit.
+
+configuration cfg_tb_registro of tb_registro is
+    for tb
+    end for;
+end cfg_tb_registro;

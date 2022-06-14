@@ -1,0 +1,63 @@
+-- Testbench automatically generated online
+-- at https://vhdl.lapinoo.net
+-- Generation date : 14.6.2022 12:47:29 UTC
+
+library ieee;
+use ieee.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity tb_comparator is
+end tb_comparator;
+
+architecture tb of tb_comparator is
+
+    component comparator
+        port (in_1  : in unsigned (255 downto 0);
+              in_2  : in unsigned (255 downto 0);
+              igual : out std_logic;
+              mayor : out std_logic;
+              menor : out std_logic);
+    end component;
+
+    signal in_1  : unsigned (255 downto 0);
+    signal in_2  : unsigned (255 downto 0);
+    signal igual : std_logic;
+    signal mayor : std_logic;
+    signal menor : std_logic;
+
+begin
+
+    dut : comparator
+    port map (in_1  => in_1,
+              in_2  => in_2,
+              igual => igual,
+              mayor => mayor,
+              menor => menor);
+
+    stimuli : process
+    begin
+        -- EDIT Adapt initialization as needed
+        in_1 <= (others => '0');
+        in_2 <= (others => '0');
+
+        -- EDIT Add stimuli here
+		in_1 <= to_unsigned(7, in_1'length);
+        wait for 10 ns;
+        in_1 <= to_unsigned(7, in_1'length);
+        in_2 <= to_unsigned(18, in_2'length);
+        wait for 10 ns;
+        in_1 <= to_unsigned(9, in_1'length);
+        in_2 <= to_unsigned(9, in_2'length);
+        wait for 10 ns;
+        
+        wait;
+    end process;
+
+end tb;
+
+-- Configuration block below is required by some simulators. Usually no need to edit.
+
+configuration cfg_tb_comparator of tb_comparator is
+    for tb
+    end for;
+end cfg_tb_comparator;
