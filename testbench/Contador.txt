@@ -1,27 +1,29 @@
 -- Testbench automatically generated online
 -- at https://vhdl.lapinoo.net
--- Generation date : 14.6.2022 12:30:54 UTC
+-- Generation date : 14.6.2022 18:13:43 UTC
 
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
-entity tb_contador is
-end tb_contador;
+entity tb_temporizador is
+end tb_temporizador;
 
-architecture tb of tb_contador is
+architecture tb of tb_temporizador is
 
-    component contador
-        port (reset : in std_logic;
-              clk   : in std_logic;
+    component temporizador
+        port (clk   : in std_logic;
+              reset : in std_logic;
               en    : in std_logic;
-              cnt   : out unsigned (255 downto 0));
+              val   : in unsigned (255 downto 0);
+              fin   : out std_logic);
     end component;
 
-    signal reset : std_logic;
     signal clk   : std_logic;
+    signal reset : std_logic;
     signal en    : std_logic;
-    signal cnt   : unsigned (255 downto 0);
+    signal val   : unsigned (255 downto 0);
+    signal fin   : std_logic;
 
     constant TbPeriod : time := 10 ns; -- EDIT Put right period here
     signal TbClock : std_logic := '0';
@@ -29,11 +31,12 @@ architecture tb of tb_contador is
 
 begin
 
-    dut : contador
-    port map (reset => reset,
-              clk   => clk,
+    dut : temporizador
+    port map (clk   => clk,
+              reset => reset,
               en    => en,
-              cnt   => cnt);
+              val   => val,
+              fin   => fin);
 
     -- Clock generation
     TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
@@ -45,16 +48,30 @@ begin
     begin
         -- EDIT Adapt initialization as needed
         en <= '1';
+        val <= to_unsigned(255, val'length);
 
         -- Reset generation
         -- EDIT: Check that reset is really your reset signal
         reset <= '1';
-        wait for 30 ns;
+        wait for 100 ns;
         reset <= '0';
-        wait for 30 ns;
+        wait for 100 ns;
 
         -- EDIT Add stimuli here
-        wait for 300 * TbPeriod;
+        val <= to_unsigned(8, val'length);
+        reset<='1';
+    	wait for 30 ns;
+        reset<='0';
+        wait for 100*TbPeriod;
+        val <= to_unsigned(6, val'length);
+        reset<='1';
+    	wait for 30 ns;
+        reset<='0';
+        wait for 30 ns;
+        reset<='1';
+    	wait for 30 ns;
+        reset<='0';
+        wait for 1000 ns;
 
         -- Stop the clock and hence terminate the simulation
         TbSimEnded <= '1';
@@ -65,7 +82,7 @@ end tb;
 
 -- Configuration block below is required by some simulators. Usually no need to edit.
 
-configuration cfg_tb_contador of tb_contador is
+configuration cfg_tb_temporizador of tb_temporizador is
     for tb
     end for;
-end cfg_tb_contador;
+end cfg_tb_temporizador;
