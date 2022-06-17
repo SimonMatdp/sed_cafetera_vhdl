@@ -1,0 +1,79 @@
+-- Testbench automatically generated online
+-- at https://vhdl.lapinoo.net
+-- Generation date : 17.6.2022 12:17:07 UTC
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity tb_EDGEDTCTR is
+end tb_EDGEDTCTR;
+
+architecture tb of tb_EDGEDTCTR is
+
+    component EDGEDTCTR
+        port (CLK     : in std_logic;
+              SYNC_IN : in std_logic;
+              EDGE    : out std_logic);
+    end component;
+
+    signal CLK     : std_logic;
+    signal SYNC_IN : std_logic;
+    signal EDGE    : std_logic;
+
+    constant TbPeriod : time := 10 ns; -- EDIT Put right period here
+    signal TbClock : std_logic := '0';
+    signal TbSimEnded : std_logic := '0';
+
+begin
+
+    dut : EDGEDTCTR
+    port map (CLK     => CLK,
+              SYNC_IN => SYNC_IN,
+              EDGE    => EDGE);
+
+    -- Clock generation
+    TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
+
+    -- EDIT: Check that CLK is really your main clock signal
+    CLK <= TbClock;
+
+    stimuli : process
+    begin
+        -- EDIT Adapt initialization as needed
+        SYNC_IN <= '0';
+		wait for 10ns; 
+        
+        -- EDIT Add stimuli here
+        SYNC_IN <= '0'; 
+		wait for 43ns;
+        SYNC_IN <= '1'; --Flanco de señal limpia
+		wait for 21ns;
+        
+        SYNC_IN <= '0'; --Señal ruidosa 
+		wait for 4ns;
+        SYNC_IN <= '1'; --Flanco de la señal
+		wait for 7ns;
+        SYNC_IN <= '0'; 
+		wait for 12ns;
+        SYNC_IN <= '1';
+		wait for 15ns; 
+        SYNC_IN <= '0'; 
+		wait for 50 ns; --Señal estabilizada
+        SYNC_IN <= '1';   
+        wait for 30 ns;
+        
+        
+
+        -- Stop the clock and hence terminate the simulation
+        TbSimEnded <= '1';
+        wait;
+    end process;
+
+end tb;
+
+-- Configuration block below is required by some simulators. Usually no need to edit.
+
+configuration cfg_tb_EDGEDTCTR of tb_EDGEDTCTR is
+    for tb
+    end for;
+end cfg_tb_EDGEDTCTR;

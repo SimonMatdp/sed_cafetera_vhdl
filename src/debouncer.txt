@@ -1,0 +1,39 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+--Funcionamiento: al detectar 1, el botón se pone en 1. Para considerar que el botón se ha soltado debe pasar cierto tiempo estable en 0. De tal forma, los ceros debidos a rebote no afectan.
+
+entity debouncer is
+    generic (   
+        CLKP:   time := 10 ns; --Periodo del reloj
+        DEBT:   time := 65 ns --Tiempo que debe permanecer a 1 para considerar que no hay rebotes
+    );
+    port (
+        clk:        in  std_logic;
+        btn:        in  std_logic;
+        btn_clr:    out std_logic:='0'
+    );
+end entity debouncer;
+
+architecture behavioural of debouncer is
+    constant DELAY: integer := DEBT/CLKP; -- numero de instantes que debe permanecer la salida a 1  para considerar que ya no hay rebotes
+    signal count:   integer := 0; -- contador para el número de instantes
+    
+begin
+
+DEBOUNCE_COUNTER:    
+    process (clk)
+    begin
+        if rising_edge(clk) then  
+            if  btn = '1' then
+                count <= 0;
+                btn_clr <= '1';
+            elsif count < DELAY then  --si el boton está en 0, cuenta
+               count <= count + 1;
+            else --Si ha llegado al final
+               btn_clr <= '0';
+            end if;
+        end if;
+    end process;
+end architecture behavioural;

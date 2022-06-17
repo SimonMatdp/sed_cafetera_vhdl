@@ -1,0 +1,33 @@
+-- Detecta que ha ocurrido un flanco de subida de la señal aunque haya sido en medio de un periodo de reloj.
+
+--Almacena los últimos 3 estados. Si detecta  001 lo interpreta como flanco de subida. Por el funcionamiento se mantiene durante un ciclo de reloj. 
+
+--Si sigue habiendo rebotes aún con el detector, usar y ajustar debouncer.
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity EDGEDTCTR is
+  port (
+    CLK : in std_logic;
+    SYNC_IN : in std_logic;
+    EDGE : out std_logic
+  );
+end EDGEDTCTR;
+
+architecture BEHAVIORAL of EDGEDTCTR is
+	signal sreg : std_logic_vector(2 downto 0);
+begin
+
+  process (CLK)
+  begin
+    if rising_edge(CLK) then
+    	sreg <= sreg(1 downto 0) & SYNC_IN;
+    end if;
+  end process;
+  
+  with sreg select
+  	EDGE <= '1' when "001",
+  	'0' when others;
+ 
+end BEHAVIORAL;
