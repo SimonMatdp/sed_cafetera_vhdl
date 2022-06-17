@@ -32,6 +32,9 @@ CHAR_DECODER_4: CHAR27SEG port map( CHAR_IN => STR_IN(4),
 						 		  );
 end MODULAR;                                  
 
+library IEEE;
+use IEEE.std_logic_1164.all;
+
 entity CHAR27SEG is
 	port(
 		CHAR_IN		: in character;

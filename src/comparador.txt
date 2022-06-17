@@ -1,11 +1,11 @@
-library ieee;
+--Comparador a cero
+library IEEE;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
-ENTITY comparator IS
+ENTITY comparador IS
 	PORT(
 		in_1: IN unsigned(255 downto 0);
-		in_2: IN unsigned(255 downto 0);
         igual: OUT STD_LOGIC;
 		mayor: OUT STD_LOGIC;
 		menor: OUT STD_LOGIC
@@ -15,7 +15,7 @@ END comparador;
 
 ARCHITECTURE arch1 OF comparador IS
 BEGIN
-	igual <= '1' WHEN in_1=in_2 ELSE '0';
-	mayor <= '1' WHEN in_1>in_2 ELSE '0'; --IN_1 mayor
-	menor <= '1' WHEN in_1<in_2 ELSE '0'; --IN_1 menor
+	igual <= '1' WHEN in_1 = to_unsigned(0, in_1'length) ELSE '0';
+	mayor <= '1' WHEN in_1 > to_unsigned(0, in_1'length) ELSE '0'; 
+	menor <= '1' WHEN in_1 < to_unsigned(0, in_1'length) ELSE '0'; 
 END arch1;
