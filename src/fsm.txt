@@ -12,22 +12,26 @@ entity fsm is
             BUTCONF: in std_logic;
             STR_OUT: out string (4 downto 1);
            	CATHODES : out std_logic_vector (28 downto 1);
-            LIGHT : out std_logic_vector(0 TO 3));         
+            LIGHT : out std_logic_vector(0 TO 3);
+            --val	: in unsigned(255 downto 0)
+         );
 end fsm; 
 
 
 architecture behavioral of fsm is 
-	type STATES is (S0, S1); 
+    signal STR_IN : string (4 downto 1);
+    signal ready : std_logic:='0';
+    signal en : std_logic:='1';
+    
+    type STATES is (S0, S1); 
     signal current_state: STATES := S0; 
     signal next_state: STATES; 
-    signal STR_IN : string (4 downto 1);
     signal tipo : string (4 downto 1);
-    signal en	: std_logic := '0';
-    signal TIMEOUT: std_logic :='0';
-    signal val : unsigned (255 downto 0);
-    signal ready : std_logic :='0';
     signal ResetTimer : std_logic :='1';
     signal ResetPulse : std_logic := '0';
+    
+    signal val : unsigned(255 downto 0);
+    
     component STR27SEG is
 		port(
 			STR_IN	: in string(4 downto 1);
@@ -45,11 +49,8 @@ architecture behavioral of fsm is
           );
 	end component;
     
-    
-    
-	begin state_register:
-    
-    	STR27SEG port map(
+begin    
+    	decoder: STR27SEG port map(
         	STR_IN => STR_IN,
             CATHODES => CATHODES
         );
@@ -59,9 +60,10 @@ architecture behavioral of fsm is
             reset=>ResetPulse,
             en=>en,
             val=>val,
-            fin=>TIMEOUT
+            fin=>ready
         );
-    	process (RESET, CLK) 
+        
+       process (RESET, CLK) 
         begin 
             if reset='1' then 
             	current_state <= S0;
@@ -69,82 +71,89 @@ architecture behavioral of fsm is
             	current_state <= next_state;
             end if;
         end process;
+        
         nextstate_decod: process(BUTCONF,current_state, ready,STR_IN)
         begin 
         next_state <= current_state; 
+          case current_state is 
+              when S0 => if BUTCONF = '1' then next_state <= S1; 
+                  tipo <= STR_IN;
+                  end if;
+              when S1 => if ready = '1' then next_state <= S0; 				
+              end if; 
+              when others => next_state <= S0; 
+          end case; 
+    	end process;
+        
+        output_decod: process (current_state, tipo, STR_IN,CLK) 
+    	variable flag_pulso_pendiente : std_logic;
+  		begin 
         case current_state is 
-            when S0 => if BUTCONF = '1' then next_state <= S1; 
-                tipo <= STR_IN;
-                end if;
-            when S1 => if ready = '1' then next_state <= S0; 				end if; 
-            when others => next_state <= S0; 
-        end case; 
-    end process;
-    output_decod: process (current_state, tipo, STR_IN,CLK) 
-    variable flag_pulso_pendiente : std_logic;
-    begin 
-        case current_state is 
+        
             when S0 => LIGHT <= (OTHERS => '0');
-            ResetTimer <= '1';
-            	if CLK'event and CLK='1' and BUTLCHE = '1' then
-                	STR_IN <= "LCHE";
-                    STR_OUT <= STR_IN;
-                elsif CLK'event and CLK='1' and BUTCRTO = '1' then
-                	STR_IN <= "CRTO";
-                elsif CLK'event and CLK='1' and BUTLRGO = '1' then
-                	STR_IN <= "LRGO";
-                elsif CLK'event and CLK='1' and BUTSOLO = '1' then
-                	STR_IN <= "SOLO";
+            	if CLK'event and CLK='1'then
+                	if BUTLCHE = '1' then
+                		STR_IN <= "LCHE";
+                    	STR_OUT <= STR_IN;
+                	elsif CLK'event and CLK='1' and BUTCRTO = '1' then
+                		STR_IN <= "CRTO";
+                	elsif CLK'event and CLK='1' and BUTLRGO = '1' then
+                		STR_IN <= "LRGO";
+                	elsif CLK'event and CLK='1' and BUTSOLO = '1' then
+                		STR_IN <= "SOLO";
+                	end if;
                 end if;
-            when S1 => 
-            	
-            	if CLK'event and CLK='1' and tipo = "LCHE" then					
-					if ResetTimer = '1' then
-        				flag_pulso_pendiente := '1';
-                    end if;
-     				if rising_edge(clk) then
-                    	ResetPulse <= '0';
+                flag_pulso_pendiente := '1';
+                
+            when S1 =>
+     			if CLK'event and CLK='1' then
+                	if tipo = "LCHE" then
+                		ResetPulse <= '0';
                     	LIGHT(2) <= '1';
                 		val <= to_unsigned(15, val'length);
-                    	en <= '1';
+                   		en <= '1';
         				if flag_pulso_pendiente = '1' then
                         	ResetPulse <= '1';
-                            ResetTimer<= '0';
           					flag_pulso_pendiente := '0';
         				end if;
-    				end if; 
-                    ready <= TIMEOUT;
-                 elsif CLK'event and CLK='1' and tipo = "SOLO" then
-                 	LIGHT(3) <= '1';
-                 	val <= to_unsigned(15, val'length);
-                    en <= '1';
-                    ready <= TIMEOUT;
-                 elsif CLK'event and CLK='1' and tipo = "LRGO" then
-             		LIGHT(3) <= '1'; 
-                 	val <= to_unsigned(10, val'length);
-                    en <= '1';
-                    if CLK'event and CLK='1' and TIMEOUT = '1' then
+                  	elsif tipo = "SOLO" then
+                 		LIGHT(3) <= '1';
+                 		val <= to_unsigned(15, val'length);
+                    	en <= '1';
+                        if flag_pulso_pendiente = '1' then
+                        	ResetPulse <= '1';
+          					flag_pulso_pendiente := '0';
+        				end if;
+                 	elsif tipo = "LRGO" then
+             			LIGHT(3) <= '1'; 
+                 		val <= to_unsigned(10, val'length);
+                    	en <= '1';
+                        if flag_pulso_pendiente = '1' then
+                        	ResetPulse <= '1';
+          					flag_pulso_pendiente := '0';
+        				end if;
+                    if CLK'event and CLK='1' and ready = '1' then
                     	ResetTimer <= '1';
                     	LIGHT(2) <= '1'; 
                     	val <= to_unsigned(5, val'length);
                     	en <= '1';
-                        ready <= TIMEOUT;
                      end if;
                  elsif CLK'event and CLK='1' and tipo = "CRTO" then
                  	LIGHT(3) <= '1'; 
                  	val <= to_unsigned(5, val'length);
                     en <= '1';
-					if CLK'event and CLK='1' and TIMEOUT = '1' then
-                    	TIMEOUT <= '0';
+					if CLK'event and CLK='1' and ready = '1' then
                     	ResetTimer <= '1';
                     	val <= to_unsigned(10, val'length);
                     	en <= '1';
-                        ready <= TIMEOUT;
                      end if;
                  end if;
+            end if;
             when others => LIGHT <= (OTHERS => '0');
         end case; 
     end process; 
+        
+        
 end behavioral;
 --
 --
@@ -239,6 +248,7 @@ end DATAFLOW;
 --
 --
 --
+-- Code your design here
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -255,16 +265,6 @@ end temporizador;
 
 architecture modular of temporizador is
 	signal clk_i		: std_logic;
-    signal cnt_out_i	: unsigned(val'range);
-
-	component comparador is
-	port(
-		in_1	: IN unsigned(255 downto 0);
-        igual: OUT STD_LOGIC;
-		mayor: OUT STD_LOGIC;
-		menor: OUT STD_LOGIC
-    );
-    end component;
     
     component freq_div is
 	generic(modulo:positive:=2);
@@ -282,7 +282,7 @@ architecture modular of temporizador is
         clk 	: in std_logic;
         en		: in std_logic;
         val		: in unsigned(255 downto 0);
- 		cnt 	: out unsigned(255 downto 0);
+ 		fin 	: out std_logic
  	);
     end component;
   
@@ -297,21 +297,15 @@ begin
         clk_out => clk_i
     ); 
     
-    cmp: comparador port map(
-    	in_1 => cnt_out_i,
-        igual => fin
-    );
-    
     cnt: contador port map(
  		reset => reset,
         clk => clk_i,
         en	=> en,
         val	=> val,
- 		cnt => cnt_out_i
+ 		fin => fin
  	);
 end modular;
 
---Contador 
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -322,12 +316,12 @@ entity contador is
         clk 	: in std_logic;
         en		: in std_logic;
         val		: in unsigned(255 downto 0);
- 		cnt 	: out unsigned(255 downto 0);
+ 		fin 	: out std_logic
  );
 end contador;
 
 architecture behavioural of contador is
-	signal cnt_i : unsigned(cnt'range);
+	signal cnt_i : unsigned(val'range);
 begin
  	counter: process (reset, clk)
  		begin
@@ -336,12 +330,14 @@ begin
             elsif rising_edge(clk) then
             	if en = '1' then
                 	if cnt_i>0 then 
+                    	fin <= '0';
  						cnt_i <= cnt_i - 1;
+                    elsif cnt_i=0 then
+                    	fin <='1';
                     end if;
                 end if;
  			end if;
  	end process;
-    cnt <= cnt_i;
 end behavioural;
 
 --Divisor de frecuencias
@@ -379,25 +375,3 @@ begin --arch
          clk_out <= clk_out_signal;
     end process; -- process
 end behavioral; --arch
-
---Comparador a cero
-library IEEE;
-use ieee.std_logic_1164.all;
-use IEEE.numeric_std.all;
-
-ENTITY comparador IS
-	PORT(
-		in_1: IN unsigned(255 downto 0);
-        igual: OUT STD_LOGIC;
-		mayor: OUT STD_LOGIC;
-		menor: OUT STD_LOGIC
-    );
-
-END comparador;
-
-ARCHITECTURE arch1 OF comparador IS
-BEGIN
-	igual <= '1' WHEN in_1 = to_unsigned(0, in_1'length) ELSE '0';
-	mayor <= '1' WHEN in_1 > to_unsigned(0, in_1'length) ELSE '0'; 
-	menor <= '1' WHEN in_1 < to_unsigned(0, in_1'length) ELSE '0'; 
-END arch1;

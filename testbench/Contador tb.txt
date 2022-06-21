@@ -1,10 +1,11 @@
 -- Testbench automatically generated online
 -- at https://vhdl.lapinoo.net
--- Generation date : 17.6.2022 09:38:54 UTC
+-- Generation date : 21.6.2022 15:46:14 UTC
 
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std.all;
+
 
 entity tb_contador is
 end tb_contador;
@@ -16,16 +17,16 @@ architecture tb of tb_contador is
               clk   : in std_logic;
               en    : in std_logic;
               val   : in unsigned (255 downto 0);
-              cnt   : out unsigned (255 downto 0));
+              fin   : out std_logic);
     end component;
 
     signal reset : std_logic;
     signal clk   : std_logic;
     signal en    : std_logic;
     signal val   : unsigned (255 downto 0);
-    signal cnt   : unsigned (255 downto 0);
+    signal fin   : std_logic;
 
-    constant TbPeriod : time := 10 ns; -- EDIT Put right period here
+    constant TbPeriod : time := 1000 ns; -- EDIT Put right period here
     signal TbClock : std_logic := '0';
     signal TbSimEnded : std_logic := '0';
 
@@ -36,7 +37,7 @@ begin
               clk   => clk,
               en    => en,
               val   => val,
-              cnt   => cnt);
+              fin   => fin);
 
     -- Clock generation
     TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
@@ -71,7 +72,7 @@ begin
         reset<='1';
     	wait for 30 ns;
         reset<='0';
-        wait for 1000 ns;
+        wait for 100 ns;
 
         -- Stop the clock and hence terminate the simulation
         TbSimEnded <= '1';
@@ -86,3 +87,4 @@ configuration cfg_tb_contador of tb_contador is
     for tb
     end for;
 end cfg_tb_contador;
+        

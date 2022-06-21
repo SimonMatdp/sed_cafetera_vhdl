@@ -15,16 +15,6 @@ end temporizador;
 
 architecture modular of temporizador is
 	signal clk_i		: std_logic;
-    signal cnt_out_i	: unsigned(val'range);
-
-	component comparador is
-	port(
-		in_1	: IN unsigned(255 downto 0);
-        igual: OUT STD_LOGIC;
-		mayor: OUT STD_LOGIC;
-		menor: OUT STD_LOGIC
-    );
-    end component;
     
     component freq_div is
 	generic(modulo:positive:=2);
@@ -42,7 +32,7 @@ architecture modular of temporizador is
         clk 	: in std_logic;
         en		: in std_logic;
         val		: in unsigned(255 downto 0);
- 		cnt 	: out unsigned(255 downto 0);
+ 		fin 	: out std_logic
  	);
     end component;
   
@@ -57,21 +47,15 @@ begin
         clk_out => clk_i
     ); 
     
-    cmp: comparador port map(
-    	in_1 => cnt_out_i,
-        igual => fin
-    );
-    
     cnt: contador port map(
  		reset => reset,
         clk => clk_i,
         en	=> en,
         val	=> val,
- 		cnt => cnt_out_i
+ 		fin => fin
  	);
 end modular;
 
---Contador 
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -82,12 +66,12 @@ entity contador is
         clk 	: in std_logic;
         en		: in std_logic;
         val		: in unsigned(255 downto 0);
- 		cnt 	: out unsigned(255 downto 0);
+ 		fin 	: out std_logic
  );
 end contador;
 
 architecture behavioural of contador is
-	signal cnt_i : unsigned(cnt'range);
+	signal cnt_i : unsigned(val'range);
 begin
  	counter: process (reset, clk)
  		begin
@@ -96,12 +80,14 @@ begin
             elsif rising_edge(clk) then
             	if en = '1' then
                 	if cnt_i>0 then 
+                    	fin <= '0';
  						cnt_i <= cnt_i - 1;
+                    elsif cnt_i=0 then
+                    	fin <='1';
                     end if;
                 end if;
  			end if;
  	end process;
-    cnt <= cnt_i;
 end behavioural;
 
 --Divisor de frecuencias
@@ -139,25 +125,3 @@ begin --arch
          clk_out <= clk_out_signal;
     end process; -- process
 end behavioral; --arch
-
---Comparador a cero
-library IEEE;
-use ieee.std_logic_1164.all;
-use IEEE.numeric_std.all;
-
-ENTITY comparador IS
-	PORT(
-		in_1: IN unsigned(255 downto 0);
-        igual: OUT STD_LOGIC;
-		mayor: OUT STD_LOGIC;
-		menor: OUT STD_LOGIC
-    );
-
-END comparador;
-
-ARCHITECTURE arch1 OF comparador IS
-BEGIN
-	igual <= '1' WHEN in_1 = to_unsigned(0, in_1'length) ELSE '0';
-	mayor <= '1' WHEN in_1 > to_unsigned(0, in_1'length) ELSE '0'; 
-	menor <= '1' WHEN in_1 < to_unsigned(0, in_1'length) ELSE '0'; 
-END arch1;

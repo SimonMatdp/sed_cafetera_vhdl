@@ -9,12 +9,12 @@ entity contador is
         clk 	: in std_logic;
         en		: in std_logic;
         val		: in unsigned(255 downto 0);
- 		cnt 	: out unsigned(255 downto 0);
+ 		fin 	: out std_logic
  );
 end contador;
 
 architecture behavioural of contador is
-	signal cnt_i : unsigned(cnt'range);
+	signal cnt_i : unsigned(val'range);
 begin
  	counter: process (reset, clk)
  		begin
@@ -23,10 +23,12 @@ begin
             elsif rising_edge(clk) then
             	if en = '1' then
                 	if cnt_i>0 then 
+                    	fin <= '0';
  						cnt_i <= cnt_i - 1;
+                    elsif cnt_i=0 then
+                    	fin <='1';
                     end if;
                 end if;
  			end if;
  	end process;
-    cnt <= cnt_i;
 end behavioural;
