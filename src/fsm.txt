@@ -26,7 +26,8 @@ architecture behavioral of fsm is
     signal TIMEOUT: std_logic :='0';
     signal val : unsigned (255 downto 0);
     signal ready : std_logic :='0';
-    signal ResetTimer : std_logic :='0';
+    signal ResetTimer : std_logic :='1';
+    signal ResetPulse : std_logic := '0';
     component STR27SEG is
 		port(
 			STR_IN	: in string(4 downto 1);
@@ -55,7 +56,7 @@ architecture behavioral of fsm is
         
         temp: temporizador port map(
         	clk=>CLK,
-            reset=>ResetTimer,
+            reset=>ResetPulse,
             en=>en,
             val=>val,
             fin=>TIMEOUT
@@ -80,9 +81,11 @@ architecture behavioral of fsm is
         end case; 
     end process;
     output_decod: process (current_state, tipo, STR_IN,CLK) 
+    variable flag_pulso_pendiente : std_logic;
     begin 
         case current_state is 
             when S0 => LIGHT <= (OTHERS => '0');
+            ResetTimer <= '1';
             	if CLK'event and CLK='1' and BUTLCHE = '1' then
                 	STR_IN <= "LCHE";
                     STR_OUT <= STR_IN;
@@ -96,9 +99,20 @@ architecture behavioral of fsm is
             when S1 => 
             	
             	if CLK'event and CLK='1' and tipo = "LCHE" then					
-                	LIGHT(2) <= '1';
-                	val <= to_unsigned(15, val'length);
-                    en <= '1';
+					if ResetTimer = '1' then
+        				flag_pulso_pendiente := '1';
+                    end if;
+     				if rising_edge(clk) then
+                    	ResetPulse <= '0';
+                    	LIGHT(2) <= '1';
+                		val <= to_unsigned(15, val'length);
+                    	en <= '1';
+        				if flag_pulso_pendiente = '1' then
+                        	ResetPulse <= '1';
+                            ResetTimer<= '0';
+          					flag_pulso_pendiente := '0';
+        				end if;
+    				end if; 
                     ready <= TIMEOUT;
                  elsif CLK'event and CLK='1' and tipo = "SOLO" then
                  	LIGHT(3) <= '1';
