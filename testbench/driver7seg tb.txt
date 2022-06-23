@@ -1,0 +1,77 @@
+-- Testbench automatically generated online
+-- at https://vhdl.lapinoo.net
+-- Generation date : 23.6.2022 18:25:18 UTC
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity tb_driver7seg is
+end tb_driver7seg;
+
+architecture tb of tb_driver7seg is
+
+    component driver7seg
+        port (clk          : in std_logic;
+              reset        : in std_logic;
+              CATHODES_IN  : in std_logic_vector (28 downto 1);
+              AN           : out std_logic_vector (3 downto 0);
+              CATHODES_OUT : out std_logic_vector (7 downto 1));
+    end component;
+
+    signal clk          : std_logic;
+    signal reset        : std_logic;
+    signal CATHODES_IN  : std_logic_vector (28 downto 1);
+    signal AN           : std_logic_vector (3 downto 0);
+    signal CATHODES_OUT : std_logic_vector (7 downto 1);
+
+    constant TbPeriod : time := 10 ns; -- EDIT Put right period here
+    signal TbClock : std_logic := '0';
+    signal TbSimEnded : std_logic := '0';
+
+begin
+
+    dut : driver7seg
+    port map (clk          => clk,
+              reset        => reset,
+              CATHODES_IN  => CATHODES_IN,
+              AN           => AN,
+              CATHODES_OUT => CATHODES_OUT);
+
+    -- Clock generation
+    TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
+
+    -- EDIT: Check that clk is really your main clock signal
+    clk <= TbClock;
+
+    stimuli : process
+    begin
+        -- EDIT Adapt initialization as needed
+        CATHODES_IN <= (others => '0');
+
+        -- Reset generation
+        -- EDIT: Check that reset is really your reset signal
+        reset <= '1';
+        wait for 100 ns;
+        reset <= '0';
+        wait for 100 ns;
+
+        -- EDIT Add stimuli here
+        CATHODES_IN(7 downto 1) 	<= "1110001"; -- 'L'
+        CATHODES_IN(14 downto 8) 	<= "1001000"; -- 'H'
+        CATHODES_IN(21 downto 15) 	<= "0110001"; -- 'C'
+        CATHODES_IN(28 downto 22) 	<= "0110000"; -- 'E'
+        wait for 100 * TbPeriod;
+
+        -- Stop the clock and hence terminate the simulation
+        TbSimEnded <= '1';
+        wait;
+    end process;
+
+end tb;
+
+-- Configuration block below is required by some simulators. Usually no need to edit.
+
+configuration cfg_tb_driver7seg of tb_driver7seg is
+    for tb
+    end for;
+end cfg_tb_driver7seg;
