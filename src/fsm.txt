@@ -23,12 +23,14 @@ architecture behavioral of fsm is
     signal ready : std_logic:='0';
     signal en : std_logic:='1';
     
-    type STATES is (S0, S1); 
+    type STATES is (S0, S1, S2); 
     signal current_state: STATES := S0; 
     signal next_state: STATES; 
     signal tipo : string (4 downto 1);
     signal ResetTimer : std_logic :='1';
     signal ResetPulse : std_logic := '0';
+    signal no_cafe : std_logic := '0';
+    signal no_leche : std_logic := '0';
     
     signal val : unsigned(255 downto 0);
     
@@ -79,14 +81,17 @@ begin
               when S0 => if BUTCONF = '1' then next_state <= S1; 
                   tipo <= STR_IN;
                   end if;
-              when S1 => if ready = '1' then next_state <= S0; 				
+              when S1 => if ready = '1' or no_cafe = '1' then next_state <= S2; 				
               end if; 
+              when S2 => if ready = '1' or no_leche = '1' then next_state <= S0;
+              end if;
               when others => next_state <= S0; 
           end case; 
     	end process;
         
         output_decod: process (current_state, tipo, STR_IN,CLK) 
-    	variable flag_pulso_pendiente : std_logic;
+    	variable flag_pulso_pendiente_cafe : std_logic;
+        variable flag_pulso_pendiente_leche : std_logic;
   		begin 
         case current_state is 
         
@@ -103,57 +108,80 @@ begin
                 		STR_IN <= "SOLO";
                 	end if;
                 end if;
-                flag_pulso_pendiente := '1';
+                flag_pulso_pendiente_cafe := '1';
+                flag_pulso_pendiente_leche := '1';
+                no_leche <= '0';
+                no_cafe <= '0';
                 
             when S1 =>
      			if CLK'event and CLK='1' then
-                	if tipo = "LCHE" then
-                		ResetPulse <= '0';
-                    	LIGHT(2) <= '1';
-                		val <= to_unsigned(15, val'length);
-                   		en <= '1';
-        				if flag_pulso_pendiente = '1' then
-                        	ResetPulse <= '1';
-          					flag_pulso_pendiente := '0';
-        				end if;
-                  	elsif tipo = "SOLO" then
+                  	if tipo = "SOLO" then
+                    	ResetPulse <= '0';
                  		LIGHT(3) <= '1';
                  		val <= to_unsigned(15, val'length);
                     	en <= '1';
-                        if flag_pulso_pendiente = '1' then
+                        if flag_pulso_pendiente_cafe = '1' then
                         	ResetPulse <= '1';
-          					flag_pulso_pendiente := '0';
+          					flag_pulso_pendiente_cafe := '0';
         				end if;
                  	elsif tipo = "LRGO" then
+                    	ResetPulse <= '0';
              			LIGHT(3) <= '1'; 
                  		val <= to_unsigned(10, val'length);
                     	en <= '1';
-                        if flag_pulso_pendiente = '1' then
+                        if flag_pulso_pendiente_cafe = '1' then
                         	ResetPulse <= '1';
-          					flag_pulso_pendiente := '0';
+          					flag_pulso_pendiente_cafe := '0';
         				end if;
-                    if CLK'event and CLK='1' and ready = '1' then
-                    	ResetTimer <= '1';
-                    	LIGHT(2) <= '1'; 
-                    	val <= to_unsigned(5, val'length);
+                 	elsif tipo = "CRTO" then
+                 		ResetPulse <= '0';
+             			LIGHT(3) <= '1'; 
+                 		val <= to_unsigned(5, val'length);
                     	en <= '1';
-                     end if;
-                 elsif CLK'event and CLK='1' and tipo = "CRTO" then
-                 	LIGHT(3) <= '1'; 
-                 	val <= to_unsigned(5, val'length);
-                    en <= '1';
-					if CLK'event and CLK='1' and ready = '1' then
-                    	ResetTimer <= '1';
-                    	val <= to_unsigned(10, val'length);
-                    	en <= '1';
+                        if flag_pulso_pendiente_cafe = '1' then
+                        	ResetPulse <= '1';
+          					flag_pulso_pendiente_cafe := '0';
+        				end if;
+                     else
+                     	no_cafe <= '1';
                      end if;
                  end if;
+        when S2 =>
+        if CLK'event and CLK = '1' then
+        	if tipo = "LCHE" then
+            	ResetPulse <= '0';
+                LIGHT(2) <= '1';
+                val <= to_unsigned(15, val'length);
+                en <= '1';
+        		if flag_pulso_pendiente_leche = '1' then
+                	ResetPulse <= '1';
+          			flag_pulso_pendiente_leche := '0';
+        		end if;
+            elsif tipo = "CRTO" then
+            	ResetPulse <= '0';
+             	LIGHT(2) <= '1'; 
+                val <= to_unsigned(10, val'length);
+                en <= '1';
+                if flag_pulso_pendiente_leche = '1' then
+                	ResetPulse <= '1';
+          			flag_pulso_pendiente_leche := '0';
+        		end if;
+            elsif tipo = "LRGO" then
+            	ResetPulse <= '0';
+             	LIGHT(2) <= '1'; 
+                val <= to_unsigned(5, val'length);
+                en <= '1';
+                if flag_pulso_pendiente_leche = '1' then
+                	ResetPulse <= '1';
+          			flag_pulso_pendiente_leche := '0';
+        		end if;
+            else 
+            	no_leche <= '1';
             end if;
-            when others => LIGHT <= (OTHERS => '0');
+        end if;
+        when others => LIGHT <= (OTHERS => '0');
         end case; 
     end process; 
-        
-        
 end behavioral;
 --
 --
