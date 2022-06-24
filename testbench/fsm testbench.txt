@@ -1,0 +1,106 @@
+-- Testbench automatically generated online
+-- at https://vhdl.lapinoo.net
+-- Generation date : 21.6.2022 16:33:46 UTC
+
+library ieee;
+use ieee.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+entity tb_fsm is
+end tb_fsm;
+
+architecture tb of tb_fsm is
+
+    component fsm
+        port (RESET    : in std_logic;
+              CLK      : in std_logic;
+              BUTLCHE  : in std_logic;
+              BUTCRTO  : in std_logic;
+              BUTLRGO  : in std_logic;
+              BUTSOLO  : in std_logic;
+              BUTCONF  : in std_logic;
+              STR_OUT  : out string (4 downto 1);
+              CATHODES : out std_logic_vector (28 downto 1);
+              LIGHT    : out std_logic_vector (0 to 3);
+              --val      : in unsigned (255 downto 0)
+              );
+    end component;
+
+    signal RESET    : std_logic;
+    signal CLK      : std_logic;
+    signal BUTLCHE  : std_logic;
+    signal BUTCRTO  : std_logic;
+    signal BUTLRGO  : std_logic;
+    signal BUTSOLO  : std_logic;
+    signal BUTCONF  : std_logic;
+    signal STR_OUT  : string (4 downto 1);
+    signal CATHODES : std_logic_vector (28 downto 1);
+    signal LIGHT    : std_logic_vector (0 to 3);
+    --signal val      : unsigned (255 downto 0);
+
+    constant TbPeriod : time := 1000 ns; -- EDIT Put right period here
+    signal TbClock : std_logic := '0';
+    signal TbSimEnded : std_logic := '0';
+
+begin
+
+    dut : fsm
+    port map (RESET    => RESET,
+              CLK      => CLK,
+              BUTLCHE  => BUTLCHE,
+              BUTCRTO  => BUTCRTO,
+              BUTLRGO  => BUTLRGO,
+              BUTSOLO  => BUTSOLO,
+              BUTCONF  => BUTCONF,
+              STR_OUT  => STR_OUT,
+              CATHODES => CATHODES,
+              LIGHT    => LIGHT
+              --val      => val
+              );
+
+    -- Clock generation
+    TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
+
+    -- EDIT: Check that CLK is really your main clock signal
+    CLK <= TbClock;
+
+    stimuli : process
+    begin
+        -- EDIT Adapt initialization as needed
+       	RESET <= '0';
+        BUTLCHE <= '0';
+        BUTCRTO <= '0';
+        BUTLRGO <= '0';
+        BUTSOLO <= '0';
+        BUTCONF <= '0';
+		wait for 10*TbPeriod;
+        BUTCRTO <= '1';
+        wait for 10*TbPeriod;
+        BUTCONF <= '1';
+        wait for 10*TbPeriod;
+        BUTCRTO <='0';
+        BUTCONF <= '0';
+        wait for 10*TbPeriod;
+        
+        wait for 200*TbPeriod;
+        BUTLCHE <= '1';
+        wait for 10*TbPeriod;
+        BUTLCHE <= '1';
+        wait for 100*Tbperiod;
+        BUTLCHE <= '0';
+        BUTCONF <= '0';
+        wait for 200*TbPeriod;
+
+        -- Stop the clock and hence terminate the simulation
+        TbSimEnded <= '1';
+        wait;
+    end process;
+
+end tb;
+
+-- Configuration block below is required by some simulators. Usually no need to edit.
+
+configuration cfg_tb_fsm of tb_fsm is
+    for tb
+    end for;
+end cfg_tb_fsm; 
