@@ -12,7 +12,7 @@ entity fsm is
             BUTCONF: in std_logic;
             STR_OUT: out string (4 downto 1);
            	CATHODES : out std_logic_vector (28 downto 1);
-            LIGHT : out std_logic_vector(0 TO 3);
+            LIGHT : out std_logic_vector(0 TO 2);
             --val	: in unsigned(255 downto 0)
          );
 end fsm; 
@@ -92,10 +92,11 @@ begin
         output_decod: process (current_state, tipo, STR_IN,CLK) 
     	variable flag_pulso_pendiente_cafe : std_logic;
         variable flag_pulso_pendiente_leche : std_logic;
+        variable flag_pulso_pendiente_leche2 : std_logic;
   		begin 
         case current_state is 
         
-            when S0 => LIGHT <= (OTHERS => '0');
+            when S0 => LIGHT <= "001";
             	if CLK'event and CLK='1'then
                 	if BUTLCHE = '1' then
                 		STR_IN <= "LCHE";
@@ -107,17 +108,17 @@ begin
                 	elsif CLK'event and CLK='1' and BUTSOLO = '1' then
                 		STR_IN <= "SOLO";
                 	end if;
-                end if;
                 flag_pulso_pendiente_cafe := '1';
                 flag_pulso_pendiente_leche := '1';
                 no_leche <= '0';
                 no_cafe <= '0';
+                end if;
                 
             when S1 =>
      			if CLK'event and CLK='1' then
                   	if tipo = "SOLO" then
                     	ResetPulse <= '0';
-                 		LIGHT(3) <= '1';
+                 		LIGHT <= "100";
                  		val <= to_unsigned(15, val'length);
                     	en <= '1';
                         if flag_pulso_pendiente_cafe = '1' then
@@ -126,7 +127,7 @@ begin
         				end if;
                  	elsif tipo = "LRGO" then
                     	ResetPulse <= '0';
-             			LIGHT(3) <= '1'; 
+             			LIGHT <= "100"; 
                  		val <= to_unsigned(10, val'length);
                     	en <= '1';
                         if flag_pulso_pendiente_cafe = '1' then
@@ -135,7 +136,7 @@ begin
         				end if;
                  	elsif tipo = "CRTO" then
                  		ResetPulse <= '0';
-             			LIGHT(3) <= '1'; 
+             			LIGHT <= "100"; 
                  		val <= to_unsigned(5, val'length);
                     	en <= '1';
                         if flag_pulso_pendiente_cafe = '1' then
@@ -147,28 +148,27 @@ begin
                      end if;
                  end if;
         when S2 =>
-        if CLK'event and CLK = '1' then
+        --if CLK'event and CLK = '1' then
         	if tipo = "LCHE" then
             	ResetPulse <= '0';
-                LIGHT(2) <= '1';
+                LIGHT <= "010";
                 val <= to_unsigned(15, val'length);
                 en <= '1';
-        		if flag_pulso_pendiente_leche = '1' then
-                	ResetPulse <= '1';
-          			flag_pulso_pendiente_leche := '0';
-        		end if;
+        			if flag_pulso_pendiente_leche = '1' then
+                		ResetPulse <= '1';
+          				flag_pulso_pendiente_leche := '0';
+                end if;
             elsif tipo = "CRTO" then
-            	ResetPulse <= '0';
-             	LIGHT(2) <= '1'; 
+             	LIGHT <= "010";
                 val <= to_unsigned(10, val'length);
-                en <= '1';
+                ResetPulse <= '0';
                 if flag_pulso_pendiente_leche = '1' then
                 	ResetPulse <= '1';
-          			flag_pulso_pendiente_leche := '0';
+                	flag_pulso_pendiente_leche := '0';
         		end if;
             elsif tipo = "LRGO" then
             	ResetPulse <= '0';
-             	LIGHT(2) <= '1'; 
+             	LIGHT <= "010";
                 val <= to_unsigned(5, val'length);
                 en <= '1';
                 if flag_pulso_pendiente_leche = '1' then
@@ -178,7 +178,7 @@ begin
             else 
             	no_leche <= '1';
             end if;
-        end if;
+        --end if;
         when others => LIGHT <= (OTHERS => '0');
         end case; 
     end process; 
@@ -355,6 +355,7 @@ begin
  		begin
  			if reset = '1' then
             	cnt_i <= val;
+                fin <= '0';
             elsif rising_edge(clk) then
             	if en = '1' then
                 	if cnt_i>0 then 
@@ -403,3 +404,4 @@ begin --arch
          clk_out <= clk_out_signal;
     end process; -- process
 end behavioral; --arch
+
