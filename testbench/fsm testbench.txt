@@ -21,7 +21,7 @@ architecture tb of tb_fsm is
               BUTCONF  : in std_logic;
               STR_OUT  : out string (4 downto 1);
               CATHODES : out std_logic_vector (28 downto 1);
-              LIGHT    : out std_logic_vector (0 to 3);
+              LIGHT    : out std_logic_vector (0 to 2);
               --val      : in unsigned (255 downto 0)
               );
     end component;
@@ -35,7 +35,7 @@ architecture tb of tb_fsm is
     signal BUTCONF  : std_logic;
     signal STR_OUT  : string (4 downto 1);
     signal CATHODES : std_logic_vector (28 downto 1);
-    signal LIGHT    : std_logic_vector (0 to 3);
+    signal LIGHT    : std_logic_vector (0 to 2);
     --signal val      : unsigned (255 downto 0);
 
     constant TbPeriod : time := 1000 ns; -- EDIT Put right period here
@@ -85,7 +85,7 @@ begin
         wait for 200*TbPeriod;
         BUTLCHE <= '1';
         wait for 10*TbPeriod;
-        BUTLCHE <= '1';
+        BUTCONF <= '1';
         wait for 100*Tbperiod;
         BUTLCHE <= '0';
         BUTCONF <= '0';
